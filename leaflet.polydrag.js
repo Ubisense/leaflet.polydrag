@@ -99,8 +99,8 @@ L.DraggablePoly = L.Draggable.extend({
 
         this._startPoint = new L.Point(first.clientX, first.clientY);
 
-        L.DomEvent.on(document, L.Draggable.MOVE, this._onMove, this);
-        L.DomEvent.on(document, L.Draggable.END, this._onUp, this);
+        L.DomEvent.on(document, L.Draggable.MOVE[L.Draggable.START], this._onMove, this);
+        L.DomEvent.on(document, L.Draggable.END[L.Draggable.START], this._onUp, this);
     },
 
     _onMove: function (e) {
@@ -167,8 +167,8 @@ L.DraggablePoly = L.Draggable.extend({
             this._restoreCursor();
         }
 
-        L.DomEvent.off(document, L.Draggable.MOVE, this._onMove);
-        L.DomEvent.off(document, L.Draggable.END, this._onUp);
+        L.DomEvent.off(document, L.Draggable.MOVE[L.Draggable.START], this._onMove);
+        L.DomEvent.off(document, L.Draggable.END[L.Draggable.START], this._onUp);
 
         if (this._moved) {
             // ensure drag is not fired after dragend
