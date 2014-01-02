@@ -37,9 +37,7 @@ L.Handler.PolyDrag = L.Handler.extend({
         this._poly
             .fire('move')
             .fire('drag');
-    },
 
-    _onDragEnd: function (e) {
         var map = this._poly._map;
         var oldLatLngs = this._poly.getLatLngs();
         var newLatLngs = [];
@@ -47,15 +45,19 @@ L.Handler.PolyDrag = L.Handler.extend({
         for (i in oldLatLngs) {
             var oldContainerPoint = map.latLngToContainerPoint(oldLatLngs[i]);
             var newContainerPoint = 
-                oldContainerPoint.add(e.target._totalDiffVec);
+                oldContainerPoint.add(e.target._diffVec);
             newLatLngs.push(map.containerPointToLatLng(newContainerPoint));
         }
-        L.DomUtil.setPosition(this._poly._container, new L.Point(0,0));
+
         this._poly.setLatLngs(newLatLngs);
-        if (this._wasEditing) {
-            this._poly.editing.enable();
-            this._wasEditing = false;
-        }
+
+        this._poly
+            .fire('move')
+            .fire('drag');
+
+    },
+
+    _onDragEnd: function (e) {
         this._poly
             .fire('moveend')
             .fire('dragend');
