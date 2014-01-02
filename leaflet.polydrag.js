@@ -4,7 +4,7 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     addHooks: function () {
-        var container = this._poly._container;
+        var container = this._poly._path;
         if (!this._draggable) {
             this._draggable = new L.DraggablePoly(container, container)
             .on('dragstart', this._onDragStart, this)
@@ -23,17 +23,12 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     _onDragStart: function (e) {
-        if (this._poly.editing.enabled()) {
-            this._wasEditing = true;
-            this._poly.editing.disable();
-        }
         this._poly
             .fire('movestart')
             .fire('dragstart');
     },
 
     _onDrag: function (e) {
-        L.DomUtil.setPosition(this._poly._container, e.target._totalDiffVec);
         this._poly
             .fire('move')
             .fire('drag');
@@ -105,6 +100,14 @@ L.DraggablePoly = L.Draggable.extend({
         L.DomEvent.on(document, L.Draggable.END[L.Draggable.START], this._onUp, this);
     },
 
+    _setMovingCursor: function () {
+        L.DomUtil.addClass(document.body, 'leaflet-dragging');
+    },
+
+    _restoreCursor: function () {
+        L.DomUtil.removeClass(document.body, 'leaflet-dragging');
+    },
+
     _onMove: function (e) {
         if (e.touches && e.touches.length > 1) { return; }
 
@@ -169,8 +172,8 @@ L.DraggablePoly = L.Draggable.extend({
             this._restoreCursor();
         }
 
-        L.DomEvent.off(document, L.Draggable.MOVE[L.Draggable.START], this._onMove);
-        L.DomEvent.off(document, L.Draggable.END[L.Draggable.START], this._onUp);
+        L.DomEvent.off(document, L.Draggable.MOVE[L.Draggable.START], this._onMove, this);
+        L.DomEvent.off(document, L.Draggable.END[L.Draggable.START], this._onUp, this);
 
         if (this._moved) {
             // ensure drag is not fired after dragend
