@@ -64,6 +64,10 @@ L.Handler.PolyDrag = L.Handler.extend({
 });
 
 L.DraggablePoly = L.Draggable.extend({
+
+    /* One key difference from parent class is that we can't use L.DomUtil.setPosition and L.DomUtil.getPosition
+        with non-marker geometry */
+
     _onDown: function (e) {
         if (
             (!L.Browser.touch && e.shiftKey) ||
@@ -115,7 +119,7 @@ L.DraggablePoly = L.Draggable.extend({
         }
         this._newPoint = new L.Point(first.clientX, first.clientY);
         this._diffVec = this._newPoint.subtract(this._lastPoint);
-        this._totalDiffVec = new L.Point(e.clientX, e.clientY).subtract(
+        this._totalDiffVec = new L.Point(first.clientX, first.clientY).subtract(
             this._startPoint
         );
 
@@ -143,7 +147,11 @@ L.DraggablePoly = L.Draggable.extend({
     },
 
     _onUp: function (e) {
-        this._totalDiffVec = new L.Point(e.clientX, e.clientY).subtract(
+
+        if( e.changedTouches && e.changedTouches.length > 1) { return;}
+        var first = (e.changedTouches && e.changedTouches.length === 1 ? e.changedTouches[0] : e);
+
+        this._totalDiffVec = new L.Point(first.clientX, first.clientY).subtract(
             this._startPoint
         );
 
