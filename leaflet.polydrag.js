@@ -41,6 +41,7 @@ L.Handler.PolyDrag = L.Handler.extend({
 
     _onDragEnd: function (e) {
         var map = this._poly._map;
+        if(!map) return; // Sometimes can be. check why
         var oldLatLngs = this._poly.getLatLngs();
         var newLatLngs = [];
         var i;
@@ -99,8 +100,8 @@ L.DraggablePoly = L.Draggable.extend({
 
         this._startPoint = new L.Point(first.clientX, first.clientY);
 
-        L.DomEvent.on(document, L.Draggable.MOVE, this._onMove, this);
-        L.DomEvent.on(document, L.Draggable.END, this._onUp, this);
+        L.DomEvent.on(document, L.Draggable.MOVE[e.type], this._onMove, this);
+        L.DomEvent.on(document, L.Draggable.END[e.type], this._onUp, this);
     },
 
     _onMove: function (e) {
@@ -167,8 +168,11 @@ L.DraggablePoly = L.Draggable.extend({
             this._restoreCursor();
         }
 
-        L.DomEvent.off(document, L.Draggable.MOVE, this._onMove);
-        L.DomEvent.off(document, L.Draggable.END, this._onUp);
+        for (var i in L.Draggable.MOVE) {
+            L.DomEvent
+                .off(document, L.Draggable.MOVE[i], this._onMove)
+                .off(document, L.Draggable.END[i], this._onUp);
+        }
 
         if (this._moved) {
             // ensure drag is not fired after dragend
@@ -177,5 +181,15 @@ L.DraggablePoly = L.Draggable.extend({
             this.fire('dragend');
         }
         this._moving = false;
-    }
+    },
+
+    _setMovingCursor: function () {
+        L.DomUtil.addClass(document.body, 'leaflet-dragging');
+    },
+
+    _restoreCursor: function () {
+        L.DomUtil.removeClass(document.body, 'leaflet-dragging');
+    },
+
+
 });
