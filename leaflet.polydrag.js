@@ -4,7 +4,7 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     addHooks: function () {
-        var container = this._poly._container;
+        var container = this._poly._path;
         if (!this._draggable) {
             this._draggable = new L.DraggablePoly(container, container)
             .on('dragstart', this._onDragStart, this)
@@ -23,40 +23,37 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     _onDragStart: function (e) {
-        if (this._poly.editing.enabled()) {
-            this._wasEditing = true;
-            this._poly.editing.disable();
-        }
         this._poly
             .fire('movestart')
             .fire('dragstart');
     },
 
     _onDrag: function (e) {
-        L.DomUtil.setPosition(this._poly._container, e.target._totalDiffVec);
         this._poly
             .fire('move')
             .fire('drag', e.target._totalDiffVec);
-    },
 
-    _onDragEnd: function (e) {
         var map = this._poly._map;
         if(!map) return; // Sometimes can be. check why
-        var oldLatLngs = this._poly.getLatLngs();
+        var oldLatLngs = this._poly.getLatLngs()[0];
         var newLatLngs = [];
         var i;
         for (i in oldLatLngs) {
             var oldContainerPoint = map.latLngToContainerPoint(oldLatLngs[i]);
-            var newContainerPoint = 
-                oldContainerPoint.add(e.target._totalDiffVec);
+            var newContainerPoint =
+                oldContainerPoint.add(e.target._diffVec);
             newLatLngs.push(map.containerPointToLatLng(newContainerPoint));
         }
-        L.DomUtil.setPosition(this._poly._container, new L.Point(0,0));
-        this._poly.setLatLngs(newLatLngs);
-        if (this._wasEditing) {
-            this._poly.editing.enable();
-            this._wasEditing = false;
-        }
+
+        this._poly.setLatLngs([newLatLngs]);
+
+        this._poly
+            .fire('move')
+            .fire('drag');
+
+    },
+
+    _onDragEnd: function (e) {
         this._poly
             .fire('moveend')
             .fire('dragend', e.target._totalDiffVec);
@@ -106,6 +103,14 @@ L.DraggablePoly = L.Draggable.extend({
 
         L.DomEvent.on(document, L.Draggable.MOVE[e.type], this._onMove, this);
         L.DomEvent.on(document, L.Draggable.END[e.type], this._onUp, this);
+    },
+
+    _setMovingCursor: function () {
+        L.DomUtil.addClass(document.body, 'leaflet-dragging');
+    },
+
+    _restoreCursor: function () {
+        L.DomUtil.removeClass(document.body, 'leaflet-dragging');
     },
 
     _onMove: function (e) {
@@ -158,7 +163,7 @@ L.DraggablePoly = L.Draggable.extend({
         if (this._simulateClick && e.changedTouches) {
             var first = e.changedTouches[0];
             var el = first.target;
-            var dist = 
+            var dist =
                 (this._newPos && this._newPos.distanceTo(this._startPos)) ||
                 0;
 
