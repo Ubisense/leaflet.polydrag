@@ -36,7 +36,7 @@ L.Handler.PolyDrag = L.Handler.extend({
         L.DomUtil.setPosition(this._poly._container, e.target._totalDiffVec);
         this._poly
             .fire('move')
-            .fire('drag');
+            .fire('drag', e.target._totalDiffVec);
     },
 
     _onDragEnd: function (e) {
@@ -59,7 +59,7 @@ L.Handler.PolyDrag = L.Handler.extend({
         }
         this._poly
             .fire('moveend')
-            .fire('dragend');
+            .fire('dragend', e.target._totalDiffVec);
     }
 });
 
